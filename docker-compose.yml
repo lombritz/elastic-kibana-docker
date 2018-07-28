@@ -1,0 +1,56 @@
+version: '2.2'
+services:
+  master.elasticsearch.local:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    container_name: master.elasticsearch.local
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  node.elasticsearch.local:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    container_name: node.elasticsearch.local
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.zen.ping.unicast.hosts=master.elasticsearch.local"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata2:/usr/share/elasticsearch/data
+    networks:
+      - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.3.2
+    container_name: kibana.local
+    environment:
+      SERVER_HOST: kibana.local
+      SERVER_NAME: kibana.local
+      ELASTICSEARCH_URL: http://master.elasticsearch.local:9200
+    ports:
+      - 5601:5601
+    networks:
+      - esnet
+
+volumes:
+  esdata1:
+    driver: local
+  esdata2:
+    driver: local
+
+networks:
+  esnet:
+
